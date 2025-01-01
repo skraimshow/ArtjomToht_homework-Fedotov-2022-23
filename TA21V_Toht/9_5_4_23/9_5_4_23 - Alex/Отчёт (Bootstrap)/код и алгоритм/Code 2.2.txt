@@ -1,0 +1,39 @@
+  int trigPin = 11; 
+  int echoPin = 12; 
+
+
+// Укажем, что к каким пинам подключено
+void setup() { 
+
+  Serial.begin (9600); 
+  pinMode(trigPin, OUTPUT); 
+  pinMode(echoPin, INPUT); 
+} 
+ 
+void loop() { 
+  int duration, distance;
+  // Теперь установим высокий уровень на пине Trig
+  digitalWrite(trigPin, HIGH);
+  // Подождем 10 μs 
+  delayMicroseconds(10); 
+  digitalWrite(trigPin, LOW); 
+  // Узнаем длительность высокого сигнала на пине Echo
+  duration = pulseIn(echoPin, HIGH); 
+  // Рассчитаем расстояние
+  distance = duration / 58;
+  
+  // Проверить, если значение меньше чем 15
+  if (distance < 15){
+    // Выввести сообщение угрозы столкновения
+    Serial.println("Ugroza stalknovenija!");
+  }
+  
+  // Если значение не меньше 15, то 
+  //вывести расстояние до столкновения
+  else {
+    Serial.print(distance); 
+    Serial.println(" cm");
+  }
+  
+  delay(100);
+}
