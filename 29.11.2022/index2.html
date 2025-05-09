@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <title>Webpage</title>
+
+    <script>
+        class billTableRow {
+
+            setAttributes(element, attributes) {
+                Object.keys(attributes).forEach(attr => {
+                    element.setAttribute(attr, attributes[attr]);
+                });
+            }
+
+            constructor(tableID) {
+                this.tableTrArray = document.getElementById(tableID).getElementsByTagName('tr');
+
+                this.newRowNumber = this.tableTrArray.length - 1;
+
+                this.rowTr = document.createElement('tr');
+                this.rowTr.setAttribute('id', tableID + 'Row' + this.newRowNumber);
+
+                this.rowTh = document.createElement('th');
+                this.rowTh.innerHTML = this.newRowNumber;
+                this.rowTh.setAttribute('class', 'align-middle');
+
+                // Название
+                this.rowNameTd = document.createElement('td');
+                this.rowNameInput = document.createElement('input');
+                const rowNameInputAttributes = {
+                    type: 'text',
+                    size: '70',
+                    required: 'required',
+                    name: 'rowName' + this.newRowNumber,
+                    class: 'form-control'
+                };
+                this.setAttributes(this.rowNameInput, rowNameInputAttributes);
+                this.rowNameTd.appendChild(this.rowNameInput);
+
+                // Цена
+                this.rowPriceTd = document.createElement('td');
+                this.rowPriceInput = document.createElement('input');
+                const rowPriceInputAttributes = {
+                    type: 'number',
+                    size: '8',
+                    value: '0',
+                    name: 'rowPrice' + this.newRowNumber,
+                    class: 'form-control',
+                    oninput: `calculateRowTotal(${this.newRowNumber})`
+                };
+                this.setAttributes(this.rowPriceInput, rowPriceInputAttributes);
+                this.rowPriceTd.appendChild(this.rowPriceInput);
+
+                // Количество
+                this.rowQuantityTd = document.createElement('td');
+                this.rowQuantityInput = document.createElement('input');
+                const rowQuantityInputAttributes = {
+                    type: 'number',
+                    size: '2',
+                    value: '0',
+                    name: 'rowQuantity' + this.newRowNumber,
+                    class: 'form-control',
+                    oninput: `calculateRowTotal(${this.newRowNumber})`
+                };
+                this.setAttributes(this.rowQuantityInput, rowQuantityInputAttributes);
+                this.rowQuantityTd.appendChild(this.rowQuantityInput);
+
+                // Налог
+                this.rowTaxTd = document.createElement('td');
+                this.rowTaxInput = document.createElement('input');
+                const rowTaxInputAttributes = {
+                    type: 'number',
+                    size: '8',
+                    value: '0',
+                    name: 'rowTax' + this.newRowNumber,
+                    class: 'form-control',
+                    oninput: `calculateRowTotal(${this.newRowNumber})`
+                };
+                this.setAttributes(this.rowTaxInput, rowTaxInputAttributes);
+                this.rowTaxTd.appendChild(this.rowTaxInput);
+
+                // Скидка
+                this.rowDiscountTd = document.createElement('td');
+                this.rowDiscountInput = document.createElement('input');
+                const rowDiscountInputAttributes = {
+                    type: 'number',
+                    size: '4',
+                    value: '0',
+                    name: 'rowDiscount' + this.newRowNumber,
+                    class: 'form-control',
+                    oninput: `calculateRowTotal(${this.newRowNumber})`
+                };
+                this.setAttributes(this.rowDiscountInput, rowDiscountInputAttributes);
+                this.rowDiscountTd.appendChild(this.rowDiscountInput);
+
+                // Сумма
+                this.rowTotalTd = document.createElement('td');
+                this.rowTotalInput = document.createElement('input');
+                const rowTotalInputAttributes = {
+                    type: 'text',
+                    size: '8',
+                    value: '0',
+                    name: 'rowTotal' + this.newRowNumber,
+                    class: 'form-control',
+                    readonly: 'readonly'
+                };
+                this.setAttributes(this.rowTotalInput, rowTotalInputAttributes);
+                this.rowTotalTd.appendChild(this.rowTotalInput);
+
+                // Удаление
+                this.rowDeleteTd = document.createElement('td');
+                this.rowDeleteInput = document.createElement('input');
+                const rowDeleteInputAttributes = {
+                    type: 'button',
+                    class: 'btn btn-danger',
+                    value: 'X',
+                    onclick: `removeRow(${this.newRowNumber})`
+                };
+                this.setAttributes(this.rowDeleteInput, rowDeleteInputAttributes);
+                this.rowDeleteTd.appendChild(this.rowDeleteInput);
+
+                // Добавляем все элементы в строку
+                this.rowTr.appendChild(this.rowTh);
+                this.rowTr.appendChild(this.rowNameTd);
+                this.rowTr.appendChild(this.rowPriceTd);
+                this.rowTr.appendChild(this.rowQuantityTd);
+                this.rowTr.appendChild(this.rowTaxTd);
+                this.rowTr.appendChild(this.rowDiscountTd);
+                this.rowTr.appendChild(this.rowTotalTd);
+                this.rowTr.appendChild(this.rowDeleteTd);
+
+                // Добавляем строку перед итоговой строкой
+                this.tableTrArray[this.newRowNumber].before(this.rowTr);
+            }
+        }
+
+        // Функция для подсчета суммы в строке
+        function calculateRowTotal(rowNumber) {
+            const price = parseFloat(document.querySelector(`input[name='rowPrice${rowNumber}']`).value) || 0;
+            const quantity = parseFloat(document.querySelector(`input[name='rowQuantity${rowNumber}']`).value) || 0;
+            const tax = parseFloat(document.querySelector(`input[name='rowTax${rowNumber}']`).value) || 0;
+            const discount = parseFloat(document.querySelector(`input[name='rowDiscount${rowNumber}']`).value) || 0;
+
+            let total = quantity * price * (1 + tax / 100) * (1 - discount / 100);
+            total = total.toFixed(2); // Округляем до 2 знаков
+
+            document.querySelector(`input[name='rowTotal${rowNumber}']`).value = total;
+            calculateTotalSum();
+        }
+
+        // Функция для удаления строки
+        function removeRow(rowNumber) {
+            document.getElementById('billTableRow' + rowNumber).remove();
+            calculateTotalSum(); // Пересчитываем итоговую сумму
+        }
+
+        // Функция для пересчета общей суммы
+        function calculateTotalSum() {
+            let totalSum = 0;
+            document.querySelectorAll("input[name^='rowTotal']").forEach(input => {
+                totalSum += parseFloat(input.value) || 0;
+            });
+            document.querySelector("input[name='TOTAL']").value = totalSum.toFixed(2);
+        }
+
+        // Добавляем первую строку при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            new billTableRow('billTable');
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="display-5 text-center">Форма счета</h1>
+        <form method="post" action="bill.php">
+          <!-- Клиентская информация -->
+          <!-- Ваш код формы клиента тут -->
+
+          <!-- Таблица товаров -->
+          <table class="table table-striped" id="billTable">
+            <thead>
+                <tr>
+                    <th scope="col">№</th>
+                    <th scope="col">Наименование</th>
+                    <th scope="col">Цена</th>
+                    <th scope="col">Кол-во</th>
+                    <th scope="col">Налог</th>
+                    <th scope="col">Скидка</th>
+                    <th scope="col">Сумма</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="button" value="+" class="btn btn-success" onclick="new billTableRow('billTable')" /></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <th class="align-middle">ИТОГО:</th>
+                    <td><input type="text" size="8" name="TOTAL" class="form-control" readonly /></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        <div>
+          <button type="button" class="btn btn-primary">Распечатать</button>
+        </div>
+    </div>
+</body>
+</html>
